@@ -1,8 +1,6 @@
 import zlib
 
-import multihash
-
-from spfs import constants
+from spfs import utils, constants
 from . import settings
 from .exceptions import BlockNotFoundError
 
@@ -14,9 +12,7 @@ class Block:
 
     @property
     def multihash(self):
-        mh = multihash.digest(self.type + self.data, 'sha2_256')
-        mh_digest = mh.digest.hex()
-        return mh_digest
+        return utils.get_multihash(self.type + self.data)
 
     def __str__(self):
         size = len(self.data) + 1
@@ -41,33 +37,33 @@ class Block:
 
         return payload
 
+    @property
+    def path(self):
+        return settings.blocks_path / self.multihash
+
     def persist(self):
         payload = self.generate_payload()
 
-        path = settings.blocks_path / self.multihash
-        self.persist_to_disk(path, payload)
-
     @staticmethod
-    def persist_to_disk(path, data):
-        if path.is_file():
+    def persist_to_disk(data):
+        if self.path.is_file():
             return
 
         compressed_data = zlib.compress(data)
-        with path.open('wb') as file_object:
+        with self.path.open('wb') as file_object:
             file_object.write(compressed_data)
 
     @classmethod
     def retrieve(cls, multihash):
-        path = settings.blocks_path / multihash
-        payload = cls.retrieve_from_disk(path)
+        payload = cls.retrieve_from_disk()
         return cls.parse_payload(payload)
 
     @staticmethod
-    def retrieve_from_disk(path):
-        if not path.is_file():
+    def retrieve_from_disk():
+        if not self.path.is_file():
             raise BlockNotFoundError()
 
-        with path.open('rb') as file_object:
+        with self.path.open('rb') as file_object:
             payload = zlib.decompress(file_object.read())
         return payload
 
