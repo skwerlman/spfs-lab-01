@@ -2,8 +2,10 @@ from nacl.encoding import HexEncoder
 from nacl.public import PrivateKey, PublicKey, Box
 from nacl.secret import SecretBox
 
+from spfs.mixins import DictLikeMixin
 
-class Identity:
+
+class Identity(DictLikeMixin):
     def __init__(self, name, private_key, data=None):
         self.data = data or {}
 
@@ -53,6 +55,6 @@ class IdentityManager:
         return identity
 
     def persist(self):
-        for name, identity in self.identities:
+        for name, identity in self.identities.items():
             self.wallet['identities'][name] = identity.as_dict()
         self.wallet.persist()

@@ -1,25 +1,15 @@
 from nacl.secret import SecretBox
 
-from spfs.utils import get_multihash
 from spfs.json import json
+from spfs.mixins import DictLikeMixin
 from spfs.objects import Object, serialize
+from spfs.utils import get_multihash
 
 
-class Wallet:
+class Wallet(DictLikeMixin):
     def __init__(self, data=None, key=None):
         self.data = data or {}
         self.key = key
-
-    def __getitem__(self, key):
-        return self.data[key]
-
-    def __setitem__(self, key, value):
-        if key not in self.data:
-            if key.endswith('_list'):
-                self.data[key] = []
-            else:
-                self.data[key] = {}
-        self.data[key] = value
 
     @classmethod
     def open(cls, name, password, multihash):
