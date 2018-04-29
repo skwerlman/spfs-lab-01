@@ -11,20 +11,28 @@ class Wallet(DictLikeMixin):
         self.data = data or {}
         self.key = key
 
+    @staticmethod
+    def get_data(multihash):  # pragma: no cover
+        return Object.get_data(multihash)
+
     @classmethod
     def open(cls, name, password, multihash):
-        key = get_multihash(f'{name}:{password}')
-        box = SecretBox(key)
+        key = get_multihash(f'{name}:{password}'.encode('utf-8'))
+        box = SecretBox(bytes.fromhex(key))
 
-        encrypted_data = Object.get_data(multihash)
+        encrypted_data = cls.get_data(multihash)
         serialized_data = box.decrypt(encrypted_data)
 
         return cls(json.loads(serialized_data), key)
 
+    @staticmethod
+    def persist_as_blocks(data):  # pragma: no cover
+        return Object.break_into_blocks(data)
+
     def persist(self):
         serialized_data = serialize(self.data)
-        box = SecretBox(self.key)
+        box = SecretBox(bytes.fromhex(self.key))
         encrypted_data = box.encrypt(serialized_data)
 
-        multihash = Object.break_into_blocks(encrypted_data)
+        multihash = self.persist_as_blocks(encrypted_data)
         return multihash

@@ -1,0 +1,7 @@
+[
+  "tests/test_mixins.py::test_dict_like_mixin_simple_key_value",
+  "tests/test_mixins.py::test_dict_like_mixin_new_list",
+  "tests/test_mixins.py::test_dict_like_mixin_new_dict",
+  "tests/test_utils.py::test_now",
+  "tests/test_utils.py::test_get_multihash"
+]

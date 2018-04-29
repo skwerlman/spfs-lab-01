@@ -1,0 +1,13 @@
+[
+  "tests/test_block.py::test_block_instantiation",
+  "tests/test_block.py::test_block_multihash",
+  "tests/test_block.py::test_block_str",
+  "tests/test_block.py::test_block_generate_payload_with_unicode_data",
+  "tests/test_block.py::test_block_generate_payload_with_unicode_type",
+  "tests/test_block.py::test_block_generate_payload_too_big",
+  "tests/test_block.py::test_block_retrieve_inexistent_from_disk",
+  "tests/test_block.py::test_block_retrieve",
+  "tests/test_block.py::test_block_persistence",
+  "tests/test_block.py::test_block_parse_payload",
+  "tests/test_block.py::test_block_repr"
+]

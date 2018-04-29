@@ -1,0 +1,6 @@
+[
+  "tests/test_identities.py::test_identity_creation_with_PrivateKey_object",
+  "tests/test_identities.py::test_identity_creation_with_hexadecimal_private_key",
+  "tests/test_identities.py::test_identity_get_box",
+  "tests/test_identities.py::test_identity_as_dict"
+]

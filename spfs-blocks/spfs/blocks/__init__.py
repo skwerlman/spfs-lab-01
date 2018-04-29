@@ -38,37 +38,39 @@ class Block:
         return payload
 
     @property
-    def path(self):
+    def path(self):  # pragma: no cover
         return settings.blocks_path / self.multihash
 
     def persist(self):
         payload = self.generate_payload()
+        self.persist_to_disk(payload, self.path)
 
-    @staticmethod
-    def persist_to_disk(data):
-        if self.path.is_file():
+    def persist_to_disk(self, data, path):  # pragma: no cover
+        if path.is_file():
             return
+        return self.do_persist_to_disk(data, path)
 
+    def do_persist_to_disk(self, data, path):  # pragma: no cover
         compressed_data = zlib.compress(data)
-        with self.path.open('wb') as file_object:
+        with path.open('wb') as file_object:
             file_object.write(compressed_data)
 
     @classmethod
     def retrieve(cls, multihash):
-        payload = cls.retrieve_from_disk()
+        path = settings.blocks_path / multihash
+        payload = cls.retrieve_from_disk(path)
         return cls.parse_payload(payload)
 
     @staticmethod
-    def retrieve_from_disk():
-        if not self.path.is_file():
+    def retrieve_from_disk(path):
+        if not path.is_file():
             raise BlockNotFoundError()
 
-        with self.path.open('rb') as file_object:
+        with path.open('rb') as file_object:  # pragma: no cover
             payload = zlib.decompress(file_object.read())
-        return payload
+        return payload  # pragma: no cover
 
     @classmethod
     def parse_payload(cls, payload):
         type_, data = payload[0:1], payload[1:]
-
         return cls(data, type_=type_)

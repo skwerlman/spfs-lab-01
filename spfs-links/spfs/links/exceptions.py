@@ -1,2 +1,0 @@
-class InvalidSignatureError(Exception):
-    pass

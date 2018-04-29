@@ -7,6 +7,7 @@ from spfs.mixins import DictLikeMixin
 
 class Identity(DictLikeMixin):
     def __init__(self, name, private_key, data=None):
+        self.name = name
         self.data = data or {}
 
         if isinstance(private_key, PrivateKey):
@@ -16,7 +17,7 @@ class Identity(DictLikeMixin):
             self.private_key = private_key
             self.private_key_obj = PrivateKey(self.private_key, HexEncoder())
 
-        self.secret_box = SecretBox(self.private_key)
+        self.secret_box = SecretBox(bytes.fromhex(self.private_key))
         self.boxes = {}
 
     def get_box(self, other_public_key):
@@ -34,8 +35,7 @@ class Identity(DictLikeMixin):
 
 
 class IdentityManager:
-    def __init__(self, wallet, name):
-        self.name = name
+    def __init__(self, wallet):
         self.wallet = wallet
         self.identities = {}
 

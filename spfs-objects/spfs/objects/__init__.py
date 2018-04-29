@@ -1,5 +1,5 @@
 from spfs import constants
-from spfs.block import Block
+from spfs.blocks import Block
 from spfs.json import json
 
 
