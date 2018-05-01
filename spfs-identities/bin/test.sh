@@ -1,4 +1,4 @@
 #!/bin/bash
 
-export PYTHONPATH='.:../spfs-base:../spfs-blocks:../spfs-objects:../spfs-wallets'
+source bin/env.sh
 pytest && coverage report

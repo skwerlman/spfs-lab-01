@@ -42,13 +42,12 @@ class IdentityManager:
         self.retrieve()
 
     def retrieve(self):
-        for identity_data in self.wallet['identities']:
-            name = identity_data['name']
+        for name, identity_data in self.wallet['identities'].items():
             private_key = identity_data['private_key']
             data = identity_data['data']
             self.identities[name] = Identity(name, private_key, data)
 
-    def create(self, wallet, name):
+    def create(self, name):
         private_key = PrivateKey.generate()
         identity = Identity(name, private_key)
         self.identities[name] = identity
@@ -57,4 +56,4 @@ class IdentityManager:
     def persist(self):
         for name, identity in self.identities.items():
             self.wallet['identities'][name] = identity.as_dict()
-        self.wallet.persist()
+        return self.wallet.persist()

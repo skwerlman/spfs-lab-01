@@ -74,3 +74,47 @@ class Block:
     def parse_payload(cls, payload):
         type_, data = payload[0:1], payload[1:]
         return cls(data, type_=type_)
+
+    @classmethod
+    def break_into_blocks(cls, data, type_=b'D'):
+        blocks = []
+
+        counter = 0
+        while True:
+            start = counter * constants.BLOCK_DATA_MAX_SIZE
+            end = start + constants.BLOCK_DATA_MAX_SIZE
+            piece = data[start:end]
+
+            if not piece:
+                break
+
+            block = cls(piece, type_=type_)
+            blocks.append(block)
+
+            counter += 1
+
+        return blocks
+
+    @classmethod
+    def persist_data(cls, data):
+        blocks = cls.break_into_blocks(data)
+        root_block = blocks[0]
+
+        for block in blocks:
+            block.persist()
+
+        return root_block.multihash
+
+    @classmethod
+    def get_data(cls, multihash):
+        block = cls.retrieve(multihash)
+
+        if block.type == b'D':
+            return block.data
+
+        if block.type == b'L':
+            data = b''
+            children = block.data.split(b'\n')
+            for child_multihash in children:
+                data += cls.get_data(child_multihash)
+            return data
