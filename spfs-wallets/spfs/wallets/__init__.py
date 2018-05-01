@@ -1,8 +1,9 @@
 from nacl.secret import SecretBox
 
+from spfs.blocks import Block
 from spfs.json import json
 from spfs.mixins import DictLikeMixin
-from spfs.objects import Object, serialize
+from spfs.objects import serialize
 from spfs.utils import get_multihash
 
 
@@ -13,11 +14,15 @@ class Wallet(DictLikeMixin):
 
     @staticmethod
     def get_data(multihash):  # pragma: no cover
-        return Object.get_data(multihash)
+        return Block.get_data(multihash)
 
     @classmethod
     def open(cls, name, password, multihash):
         key = get_multihash(f'{name}:{password}'.encode('utf-8'))
+        return cls.open_with_key(key, multihash)
+
+    @classmethod
+    def open_with_key(cls, key, multihash):
         box = SecretBox(bytes.fromhex(key))
 
         encrypted_data = cls.get_data(multihash)
@@ -27,12 +32,11 @@ class Wallet(DictLikeMixin):
 
     @staticmethod
     def persist_as_blocks(data):  # pragma: no cover
-        return Object.break_into_blocks(data)
+        return Block.persist_data(data)
 
     def persist(self):
         serialized_data = serialize(self.data)
         box = SecretBox(bytes.fromhex(self.key))
         encrypted_data = box.encrypt(serialized_data)
 
-        multihash = self.persist_as_blocks(encrypted_data)
-        return multihash
+        return self.persist_as_blocks(encrypted_data)

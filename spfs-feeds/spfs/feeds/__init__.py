@@ -25,3 +25,6 @@ class Feed:
             previous = obj.links['_previous']
 
         assert obj.previous == self.base_object.multihash
+
+    def persist(self):
+        return self.base_object.persist()

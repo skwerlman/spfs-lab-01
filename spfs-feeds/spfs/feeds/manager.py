@@ -1,6 +1,6 @@
-from spfs.objects import Object
+from spfs.objects import Object, serialize
 
-from .feed import Feed
+from . import Feed
 
 
 class FeedManager:
@@ -32,9 +32,10 @@ class FeedManager:
 
         links = {}
         links.update(extra_links)
-        links['_identity'] = self.identity.multihash
 
-        base_object = Object(data, links)
+        links['_identity'] = self.identity.public_key_multihash
+
+        base_object = Object(serialize(data), links)
         feed = Feed(self, base_object, None)
         self.feeds[name] = feed
         return feed
@@ -44,9 +45,9 @@ class FeedManager:
             base_object = feed.base_object
             leaf = feed.leaf
 
-            base_object.persist()
-            leaf.persist()
+            base_block = base_object.persist()
+            leaf_block = leaf.persist()
 
-            self.identity['feeds'][name] = (base_object.multihash, leaf.multihash)
+            self.identity['feeds'][name] = (base_block.multihash, leaf_block.multihash)
 
-        self.identity.persist()
+        return self.identity.persist()

@@ -2,11 +2,13 @@ from nacl.encoding import HexEncoder
 from nacl.public import PrivateKey, PublicKey, Box
 from nacl.secret import SecretBox
 
+from spfs.blocks import Block
 from spfs.mixins import DictLikeMixin
 
 
 class Identity(DictLikeMixin):
-    def __init__(self, name, private_key, data=None):
+    def __init__(self, manager, name, private_key, data=None):
+        self.manager = manager
         self.name = name
         self.data = data or {}
 
@@ -20,6 +22,11 @@ class Identity(DictLikeMixin):
         self.secret_box = SecretBox(bytes.fromhex(self.private_key))
         self.boxes = {}
 
+        self.public_key_obj = self.private_key_obj.public_key
+        self.public_key = self.private_key_obj.encode().hex()
+
+        self.public_key_multihash = Block.persist_data(self.public_key.encode('utf-8'))
+
     def get_box(self, other_public_key):
         if other_public_key not in self.boxes:
             opk = PublicKey(other_public_key, HexEncoder())
@@ -30,8 +37,13 @@ class Identity(DictLikeMixin):
         return {
             'name': self.name,
             'private_key': self.private_key,
+            'public_key': self.public_key,
+            'public_key_multihash': self.public_key_multihash,
             'data': self.data
         }
+
+    def persist(self):
+        return self.manager.persist()
 
 
 class IdentityManager:
@@ -42,19 +54,18 @@ class IdentityManager:
         self.retrieve()
 
     def retrieve(self):
-        for identity_data in self.wallet['identities']:
-            name = identity_data['name']
+        for name, identity_data in self.wallet['identities'].items():
             private_key = identity_data['private_key']
             data = identity_data['data']
-            self.identities[name] = Identity(name, private_key, data)
+            self.identities[name] = Identity(self, name, private_key, data)
 
-    def create(self, wallet, name):
+    def create(self, name):
         private_key = PrivateKey.generate()
-        identity = Identity(name, private_key)
+        identity = Identity(self, name, private_key)
         self.identities[name] = identity
         return identity
 
     def persist(self):
         for name, identity in self.identities.items():
             self.wallet['identities'][name] = identity.as_dict()
-        self.wallet.persist()
+        return self.wallet.persist()

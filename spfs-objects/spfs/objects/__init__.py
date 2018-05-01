@@ -8,7 +8,7 @@ def serialize(data):
 
 
 def serialize_multihashes(blocks):
-    return b'\n'.join([block.multihash for block in blocks])
+    return b'\n'.join([block.multihash.encode('utf-8') for block in blocks])
 
 
 class Object:
@@ -18,12 +18,12 @@ class Object:
 
     @property
     def data_blocks(self):
-        return self.break_into_blocks(self.data)
+        return Block.break_into_blocks(self.data)
 
     @property
     def links_blocks(self):
         serialized_links = serialize(self.links)
-        return self.break_into_blocks(serialized_links)
+        return Block.break_into_blocks(serialized_links)
 
     @property
     def blocks(self):
@@ -39,7 +39,7 @@ class Object:
             list_block = Block(data=serialized_blocks_list, type_=b'L')
 
         else:
-            list_block_blocks = self.break_into_blocks(serialized_blocks_list)
+            list_block_blocks = Block.break_into_blocks(serialized_blocks_list)
             list_block = self.get_blocks_list_block(list_block_blocks)
 
         blocks.append(list_block)
@@ -61,40 +61,6 @@ class Object:
         master_block.persist()
         return master_block
 
-    @staticmethod
-    def break_into_blocks(data, type_=b'D'):
-        blocks = []
-
-        counter = 0
-        while True:
-            start = counter * constants.BLOCK_DATA_MAX_SIZE
-            end = start + constants.BLOCK_DATA_MAX_SIZE
-            piece = data[start:end]
-
-            if not piece:
-                break
-
-            block = Block(piece, type_=type_)
-            blocks.append(block)
-
-            counter += 1
-
-        return blocks
-
-    @classmethod
-    def get_data(cls, multihash):
-        block = Block.retrieve(multihash)
-
-        if block.type == b'D':
-            return block.data
-
-        if block.type == b'L':
-            data = b''
-            children = block.data.split(b'\n')
-            for child_multihash in children:
-                data += cls.get_data(child_multihash)
-            return data
-
     @classmethod
     def retrieve(cls, multihash):
         master_block = Block.retrieve(multihash)
@@ -102,7 +68,7 @@ class Object:
         data_block = Block.retrieve(master_block_blocks_list[0])
         links_block = Block.retrieve(master_block_blocks_list[1])
 
-        data = cls.get_data(data_block.multihash)
-        links = json.loads(cls.get_data(links_block.multihash))
+        data = Block.get_data(data_block.multihash)
+        links = json.loads(Block.get_data(links_block.multihash))
 
         return cls(data, links)
